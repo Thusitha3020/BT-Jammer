@@ -4,6 +4,7 @@ Overview 🌐
 This project demonstrates how to configure an ESP32 microcontroller to transmit continuous signals across various channels in the 2.4 GHz frequency band using the NRF24L01+ module. This setup can interfere with Bluetooth communications within its range. Note: Deploying jammers in real-world environments is illegal in many countries, including the United States, due to their potential to disrupt legitimate communications. Always ensure compliance with local laws and regulations before engaging in such activities.
 
 Hardware Requirements 🛠️
+
 •	ESP32 Development Board: A microcontroller with Wi-Fi and Bluetooth capabilities.
 •	NRF24L01+ Module: A 2.4 GHz transceiver module for RF communication.
 •	Push Button: For toggling between different jamming modes.
