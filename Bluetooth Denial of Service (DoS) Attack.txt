@@ -1,0 +1,21 @@
+#include "RF24.h"
+
+RF24 radio(CE_PIN, CSN_PIN);
+
+byte channel = 37;  // Specific Bluetooth channel
+void setup() {
+  Serial.begin(115200);
+  if (radio.begin()) {
+    Serial.println("Radio initialized!");
+    radio.setAutoAck(false);
+    radio.stopListening();
+    radio.setPALevel(RF24_PA_MAX);
+    radio.setDataRate(RF24_2MBPS);
+    radio.setChannel(channel);  // Set specific channel for Bluetooth interference
+  }
+}
+
+void loop() {
+  radio.write("BOTH","5");  // Send interference signal continuously
+  delay(10);  // Small delay to simulate continuous transmission
+}

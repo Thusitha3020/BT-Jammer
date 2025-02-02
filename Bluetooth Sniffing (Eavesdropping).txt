@@ -1,0 +1,25 @@
+#include <BLEDevice.h>
+#include <BLEScan.h>
+
+BLEScan* scanner;
+
+void setup() {
+  Serial.begin(115200);
+  BLEDevice::init("");
+  scanner = BLEDevice::getScan(); 
+  scanner->setActiveScan(true);
+  scanner->setInterval(100);
+  scanner->setWindow(99);
+  Serial.println("Scanning for Bluetooth devices...");
+}
+
+void loop() {
+  BLEScanResults foundDevices = scanner->start(5); 
+  Serial.println("Devices found:");
+  for (int i = 0; i < foundDevices.getCount(); i++) {
+      BLEAdvertisedDevice device = foundDevices.getDevice(i);
+      Serial.print("Device Name: ");
+      Serial.println(device.getName().c_str());
+  }
+  delay(1000);
+}

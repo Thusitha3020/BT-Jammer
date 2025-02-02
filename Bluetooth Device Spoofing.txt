@@ -1,0 +1,16 @@
+#include <BluetoothSerial.h>
+
+BluetoothSerial SerialBT;
+
+void setup() {
+  Serial.begin(115200);
+  SerialBT.begin("ESP32_Fake_Device");  // Name of the spoofed device
+  Serial.println("The ESP32 is now advertising as a Bluetooth device.");
+}
+
+void loop() {
+  if (SerialBT.available()) {
+    String received = SerialBT.readString();
+    Serial.println("Received: " + received);
+  }
+}

@@ -1,0 +1,95 @@
+#include "RF24.h"
+#include <ezButton.h>
+#include "esp_bt.h"
+#include "esp_wifi.h"
+
+// Define SPI pins
+#define SCK_PIN 14
+#define MISO_PIN 12
+#define MOSI_PIN 13
+#define CSN_PIN 15
+#define CE_PIN 16
+
+// Create an instance of the RF24 class
+RF24 radio(CE_PIN, CSN_PIN);
+
+// Create an instance of the SPIClass
+SPIClass *spi = nullptr;
+
+byte i = 37; // Start at Bluetooth channel 37 (used for BLE)
+unsigned int flag = 0;
+ezButton toggleSwitch(33);
+
+void setup(void) {
+  esp_bt_controller_deinit();   // Disable Bluetooth
+  esp_wifi_stop();              // Stop Wi-Fi
+  esp_wifi_deinit();            // Deinitialize Wi-Fi
+  Serial.begin(115200);
+  toggleSwitch.setDebounceTime(50);
+  initSPI();
+}
+
+void initSPI() {
+  // Initialize SPI with custom pins
+  spi = new SPIClass(VSPI);
+  spi->begin(SCK_PIN, MISO_PIN, MOSI_PIN, CSN_PIN);
+
+  if (radio.begin()) {
+    delay(200);
+    Serial.println("Jammer Started!!!");
+    radio.setAutoAck(false);
+    radio.stopListening();
+    radio.setRetries(0, 0);
+    radio.setPayloadSize(5);   // Set payload size
+    radio.setAddressWidth(3);  // Set address width
+    radio.setPALevel(RF24_PA_MAX, true);   // Maximum power level
+    radio.setDataRate(RF24_2MBPS);
+    radio.setCRCLength(RF24_CRC_DISABLED);
+    radio.printPrettyDetails();
+    radio.startConstCarrier(RF24_PA_MAX, i); // Start with Bluetooth channel
+  } else {
+    Serial.println("NRF24L01 not initialized.");
+  }
+}
+
+void two() {
+  // Channel hopping: 2 spacing increments
+  if (flag == 0) {
+    i += 2;
+  } else {
+    i -= 2;
+  }
+
+  if ((i > 79) && (flag == 0)) {
+    flag = 1;
+  } else if ((i < 2) && (flag == 1)) {
+    flag = 0;
+  }
+
+  radio.setChannel(i);   // Set channel for jamming
+}
+
+void one() {
+  // Sweep across all Bluetooth channels (37 to 39) and Wi-Fi channels (1 to 14)
+  for (int i = 37; i <= 39; i++) {
+    radio.setChannel(i);  // Set Bluetooth channels
+    delay(10);
+  }
+
+  for (int i = 1; i <= 14; i++) {
+    radio.setChannel(i);  // Set Wi-Fi channels
+    delay(10);
+  }
+}
+
+void loop(void) {
+  toggleSwitch.loop();  // MUST call the loop() function for the button
+
+  int state = toggleSwitch.getState();
+
+  if (state == HIGH)
+    two(); // Switch to channel hopping
+  else {
+    one(); // Sweep Bluetooth and Wi-Fi channels
+  }
+}
