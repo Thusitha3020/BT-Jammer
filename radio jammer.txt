@@ -1,0 +1,49 @@
+#include "RF24.h"
+
+// Define SPI pins
+#define SCK_PIN 14
+#define MISO_PIN 12
+#define MOSI_PIN 13
+#define CSN_PIN 15
+#define CE_PIN 16
+
+// Create an instance of the RF24 class
+RF24 radio(CE_PIN, CSN_PIN);
+
+// Create an instance of the SPIClass
+SPIClass *spi = nullptr;
+
+void setup(void) {
+  Serial.begin(115200);
+  initSPI();
+  radio.begin();
+  radio.setAutoAck(false);   // Disable AutoAck
+  radio.stopListening();     // Stop listening for incoming data
+  radio.setRetries(0, 0);    // No retries
+  radio.setPayloadSize(5);   // Set payload size
+  radio.setAddressWidth(3);  // Set address width
+  radio.setPALevel(RF24_PA_HIGH);  // Set PA level to high
+  radio.setDataRate(RF24_2MBPS);  // Set data rate to 2 Mbps
+  radio.setCRCLength(RF24_CRC_DISABLED);  // Disable CRC for noise transmission
+}
+
+void initSPI() {
+  // Initialize SPI with custom pins
+  spi = new SPIClass(VSPI);
+  spi->begin(SCK_PIN, MISO_PIN, MOSI_PIN, CSN_PIN);
+}
+
+void jamChannels() {
+  // Sweep through channels in the 2.4GHz ISM band (channel 0-125)
+  for (int channel = 0; channel < 126; channel++) {
+    radio.setChannel(channel);  // Set the current channel to jam
+    byte dummy[5] = {0x00, 0x00, 0x00, 0x00, 0x00};  // Dummy payload
+    radio.write(&dummy, sizeof(dummy));  // Send dummy data to jam the channel
+    delay(10);  // Small delay between channel changes
+  }
+}
+
+void loop(void) {
+  Serial.println("Jamming radio channels...");
+  jamChannels();  // Jam all channels continuously
+}
