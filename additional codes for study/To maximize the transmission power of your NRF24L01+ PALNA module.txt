@@ -1,0 +1,50 @@
+#include <SPI.h>
+#include <RF24.h>
+
+// Define SPI pins
+#define SCK_PIN 14
+#define MISO_PIN 12
+#define MOSI_PIN 13
+#define CSN_PIN 15
+#define CE_PIN 16
+
+// Create an instance of the RF24 class
+RF24 radio(CE_PIN, CSN_PIN);
+
+// Create an instance of the SPIClass
+SPIClass *spi = nullptr;
+
+void setup() {
+  Serial.begin(115200);
+  initSPI();
+}
+
+void initSPI() {
+  // Initialize SPI with custom pins
+  spi = new SPIClass(VSPI);
+  spi->begin(SCK_PIN, MISO_PIN, MOSI_PIN, CSN_PIN);
+
+  if (radio.begin(spi)) {
+    delay(200);
+    Serial.println("NRF24L01+ PA/LNA Module Initialized");
+
+    // Set the power amplifier level to maximum
+    radio.setPALevel(RF24_PA_MAX);
+
+    // Additional configurations
+    radio.setAutoAck(false);
+    radio.stopListening();
+    radio.setRetries(0, 0);
+    radio.setPayloadSize(5);
+    radio.setAddressWidth(3);
+    radio.setDataRate(RF24_2MBPS);
+    radio.setCRCLength(RF24_CRC_DISABLED);
+    radio.printPrettyDetails();
+  } else {
+    Serial.println("NRF24L01+ PA/LNA Module Initialization Failed");
+  }
+}
+
+void loop() {
+  // Your main code here
+}
