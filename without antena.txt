@@ -1,0 +1,51 @@
+#include <BLEDevice.h>
+#include <BLEScan.h>
+#include <BLEAdvertisedDevice.h>
+
+// Define constants
+#define SCAN_TIME 5  // Scan time in seconds
+
+BLEScan* pBLEScan;
+
+// Simulate random Bluetooth device data
+void displayRandomDevice() {
+  // Generate random device name and address
+  char deviceName[20];
+  char deviceAddress[18];
+
+  // Randomly generating a name (e.g., BLE_Device_1, BLE_Device_2)
+  int deviceId = random(1, 100);
+  sprintf(deviceName, "BLE_Device_%d", deviceId);
+
+  // Generating random MAC address
+  sprintf(deviceAddress, "XX:XX:XX:XX:%02X:%02X", random(0, 256), random(0, 256));
+
+  Serial.print("Found Device - Name: ");
+  Serial.print(deviceName);
+  Serial.print(" Address: ");
+  Serial.println(deviceAddress);
+}
+
+void setup() {
+  // Start Serial communication
+  Serial.begin(115200);
+  Serial.println("Starting BLE scan...");
+
+  // Initialize BLE
+  BLEDevice::init("");  // No device name (or empty string)
+
+  // Create BLE scan object
+  pBLEScan = BLEDevice::getScan();
+  pBLEScan->setActiveScan(true);  // Active scan to get more information from devices
+  pBLEScan->setInterval(100);  // 100ms interval between scan windows
+  pBLEScan->setWindow(99);  // Window size for scanning (less than or equal to interval)
+
+  // Display random devices
+  displayRandomDevice();
+}
+
+void loop() {
+  // Simulate scanning every few seconds
+  delay(SCAN_TIME * 1000);
+  displayRandomDevice();  // Simulate random device found
+}

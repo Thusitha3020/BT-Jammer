@@ -1,0 +1,98 @@
+#include "esp_bt.h"
+#include "esp_wifi.h"
+#include <ezButton.h>
+
+// Toggle switch to control the jamming behavior
+ezButton toggleSwitch(33);
+
+// Constants
+#define SCAN_TIME 5  // Scan time in seconds
+byte channel = 0;   // Channel for the jamming signal
+unsigned int flag = 0;
+
+// Setup function
+void setup() {
+  Serial.begin(115200);
+  Serial.println("Bluetooth Jamming Simulation");
+
+  // Setup toggle switch
+  toggleSwitch.setDebounceTime(50);
+
+  // Disable WiFi and Bluetooth
+  esp_bt_controller_deinit(); // Disable Bluetooth
+  esp_wifi_stop();            // Disable WiFi
+  esp_wifi_deinit();          // Deinitialize WiFi
+  Serial.println("WiFi and Bluetooth Disabled");
+}
+
+// Function to simulate Bluetooth jamming by hopping channels
+void updateChannel() {
+  // Simulate channel hopping behavior (interfering with Bluetooth)
+  if (flag == 0) {
+    channel += 3;
+  } else {
+    channel -= 3;
+  }
+
+  if (channel > 79 && flag == 0) {
+    flag = 1;
+  } else if (channel < 0 && flag == 1) {
+    flag = 0;
+  }
+
+  // Print the "jammed" channel
+  Serial.print("Jamming on channel: ");
+  Serial.println(channel);
+}
+
+// Function to sweep through all Bluetooth channels
+void sweepChannels() {
+  // Sweep through all simulated channels
+  for (int i = 0; i < 79; i++) {
+    Serial.print("Simulating jamming on channel: ");
+    Serial.println(i);
+  }
+}
+
+// Main loop
+void loop() {
+  toggleSwitch.loop();  // Update toggle switch state
+
+  if (toggleSwitch.isPressed()) {
+    // If toggle switch is pressed, simulate Bluetooth jamming
+    updateChannel();  // Simulate channel hopping
+
+    // Re-enable WiFi and Bluetooth (simulating interference)
+    esp_wifi_start();
+    Serial.println("Re-enabling WiFi...");
+    delay(1000);
+    disableWiFi();
+    disableBluetooth();
+  } else {
+    // Otherwise, sweep through all channels
+    sweepChannels();
+  }
+
+  // Simulate disabling WiFi and Bluetooth periodically
+  delay(1000);
+  disableWiFi();
+  disableBluetooth();
+}
+
+// Function to disable WiFi and Bluetooth (simulate interference)
+void disableWiFi() {
+  esp_wifi_stop();
+  esp_wifi_deinit();
+  Serial.println("WiFi Disabled");
+}
+
+void disableBluetooth() {
+  esp_bt_controller_config_t bt_config = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
+  esp_err_t ret = esp_bt_controller_init(&bt_config);
+  if (ret == ESP_OK) {
+    esp_bt_controller_deinit();  // Disable Bluetooth
+    Serial.println("Bluetooth Disabled");
+  } else {
+    Serial.println("Bluetooth initialization failed");
+  }
+}
